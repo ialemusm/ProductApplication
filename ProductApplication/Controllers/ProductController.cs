@@ -6,7 +6,9 @@ using System.Linq;
 using System.Threading.Tasks;
 
 namespace ProductApplication.Controllers
+
 {
+
     [Route("api/[controller]")]
     [ApiController]
     public class ProductController : ControllerBase
@@ -16,11 +18,37 @@ namespace ProductApplication.Controllers
         {
             using (Models.PRODUCTOSContext db = new Models.PRODUCTOSContext())
             {
-                var lst = (from p in db.Products where p.ProdStatus == 0
-                           select p).ToList();
+
+                var lst = (from p in db.Products join s in db.ProductConditions on p.ProdCondition equals s.CondId where p.ProdStatus == 0
+                           select new Models.Request.ProductGetRequest
+                           {
+                               ProdId = p.ProdId,
+                               ProdName = p.ProdName,
+                               ProdCondition = s.CondName,
+                               ProdStatus = p.ProdStatus
+                           }).ToList();
 
                 return Ok(lst);
             }
+        }
+
+        // GET: api/Products/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Models.Product>> GetProduct(int id)
+        {
+            using (Models.PRODUCTOSContext db = new Models.PRODUCTOSContext())
+            {
+                Models.Product Product = db.Products.Find(id);
+
+                if (Product == null)
+                {
+                    return NotFound();
+                }
+
+                return Product;
+            }
+
+            
         }
 
         [HttpPost]
